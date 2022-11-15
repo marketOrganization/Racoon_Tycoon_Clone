@@ -57,7 +57,7 @@
         ...mapGetters(["getGame", "getPlayer", "getSocket", "getGameRunning", "getMessage", "getGameOver", "getAudio"])
       },
       created() {
-        //this.socket = io("https://game-test-birds-eye.herokuapp.com", { })
+        this.updateSocket(io("https://game-test-birds-eye.herokuapp.com", { }))
         this.updateSocket(io("http://localhost:3000", { }))
         let background = new Audio("background.mp3")
         let flip =  new Audio("flip.mp3")
