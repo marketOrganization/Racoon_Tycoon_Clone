@@ -1,8 +1,8 @@
 <template>
-    <div>
-        <div v-if="personalStats" class="stats-container">
+    <div class="players-container-end">
+        <div  v-for="player in game.players" :key="player.name" class="stats-container-all">
+            <div class="points">{{player.score}} Victory Points</div>
             <div class="name-money">
-                <div class="money margin">${{player.money}}</div>
                 <div class="name margin">{{player.name}}</div>
             </div>
             <div class="cards-container">
@@ -31,82 +31,38 @@
                     </div>
                 </div>
             </div>
-            <button class="show-button" @click="updatePersonalStats(false)">Hide Own Cards</button>
+        <button class="show-button" @click="updateAllStats(false)">Hide All Cards</button>
         </div>
-        <div class = "show-buttons">
-            <button v-if="!personalStats && !allStats" class="show-button" @click="updatePersonalStats(true)">Show Own Cards</button>
-            <button v-if="!allStats && !personalStats" class="show-button" @click="updateAllStats(true)">Show All Cards</button>
-        </div>
-        <AllPlayers v-if="allStats"/>
     </div>
 </template>
 
 <script>
-    import { mapState, mapGetters, mapMutations} from "vuex";
-    import AllPlayers from "./AllPlayers.vue";
+    import { mapState, mapGetters, mapMutations } from "vuex";
     export default {
-        name: "PlayerStats",
+        name: "GameOver",
         data (){
             return {
             }
         },
-        components:{
-            AllPlayers
-        },
         computed: {
-        ...mapState(["player", "socket", "game", "personalStats", "allStats"]),
-        ...mapGetters(["getPlayer", "getSocket", "getGame", "getPersonalStats", "getAllStats"])
+        ...mapState(["socket", "game"]),
+        ...mapGetters(["getSocket", "getGame", ])
         },
         methods: {
-            ...mapMutations(["updatePersonalStats", "updateAllStats"]),
-            handleUpgrade(building, buildingIndex){
-                console.log(building)
-                if(!building.upgradable){return}
-                console.log("hello")
-                let player = this.getPlayer()
-                let game = this.getGame()
-                let cost = 9
-                if(building.price === 6){
-                    cost = 15
-                }
-                if(building.price === 5){
-                    cost = 12
-                }
-                if(player.money >= cost && game.players[game.turnIndex].name === player.name){
-                    player.money -= cost
-                    building.upgraded = true
-                    building.upgradable = false
-                    building.imageLink = building.upgradedImageLink
-                    player.buildings[buildingIndex] = building
-                    game.players[game.turnIndex] = player
-                    game.action = "NEXT_TURN"
-                    this.getSocket().emit("ACTION", game)
-                }
-            }
+           ...mapMutations(["updateAllStats"])
         }
     }
 </script>
 
 <style>
-    .show-buttons{
-        position:absolute;
-        bottom: 10px;
-        left: 10px;
-    }
-    .show-button{
-        font-size: 1.2em;
-        font-family: main;
-        background: rgba(43, 17, 17, 0.839);
-        border:3px solid rgb(148, 98, 47);
-        font-weight: bolder;
-        text-decoration: none ;
-        color:rgb(167, 142, 119);
-        padding: 5px;
-        padding-left:10px;
-        padding-right:10px;
-        border-radius: 20px;
-        text-shadow: rgb(0, 0, 0) 2px 2px 2px;
-        margin: 15px;
+    .players-container-end{
+        display: flex;
+        flex-flow: column wrap;
+        position: absolute;
+        width:80vw;
+        height: 80vh;
+        bottom: 10vh;
+        left: 10vw;
     }
     .cards-container{
         width: 100%;
@@ -119,10 +75,7 @@
         font-family: main;
         font-size: 1em;
     }
-    .stats-container{
-        position: absolute;
-        bottom: 50px;
-        left: 10px;
+    .stats-container-all{
         display:flex;
         flex-flow:column nowrap;
         justify-content: space-between;
@@ -134,7 +87,6 @@
         border-radius:10px;
         color:rgb(213, 201, 178);
         margin: 20px;
-        max-width: 20%;
     }
     .name-money{
         display:flex;
@@ -185,10 +137,5 @@
         width:30px;
         height:30px;
         margin:4px;
-    }
-
-    .module:hover{
-        transform:scale(2) translate(10%);
-        background: rgb(43, 17, 17);
     }
 </style>

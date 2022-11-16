@@ -103,6 +103,7 @@
 
       moveCamera (position, target, game, initial) {
         if(!this.camera){return}
+        console.log(this.camera)
         const frameRate = 10
         let setPosition = new Animation("setPosition", 'position', frameRate, Animation.ANIMATIONTYPE_VECTOR3, Animation.ANIMATIONLOOPMODE_CONSTANT)
         let setTarget = new Animation("setTarget", "target", frameRate, Animation.ANIMATIONTYPE_VECTOR3, Animation.ANIMATIONLOOPMODE_CONSTANT)
@@ -111,16 +112,8 @@
             frame: 0,
             value: this.camera.position
         },
-        {   
-            frame: frameRate * .25,
-            value: this.camera.position
-        },
-        {   
-            frame: frameRate * .75,
-            value: this.camera.position
-        },
         {
-            frame: frameRate * 1,
+            frame: frameRate * .75,
             value: position
         }]
 
@@ -129,7 +122,7 @@
             value: this.camera._currentTarget
         },
         {
-            frame: frameRate * 1,
+            frame: frameRate * .75,
             value: target
         }]
 
@@ -220,20 +213,21 @@
             break
           
           case "TOWN":
-            console.log(board.cards.shown.town)
-          newPosition = {
+            newPosition = {
               x:board.cards.shown.town.position._x,
               y:board.cards.shown.town.position._y,
               z:board.cards.shown.town.position._z
             }
             this.moveModel(board.cards.shown.town, {x:18.5, y:1, z:0}, null, .7, null).onAnimationEnd = () => {
-              this.moveModel(board.cards.decks.towns[0], newPosition, "x", .3, 0).onAnimationEnd = () => {
+              if(board.cards.decks.towns[0]){
+                this.moveModel(board.cards.decks.towns[0], newPosition, "x", .3, 0).onAnimationEnd = () => {
                 board.cards.shown.town = board.cards.decks.towns.splice(0,1)[0]
                 board.cards.shown.town.actionManager = new BABYLON.ActionManager(this.scene)
                 board.cards.shown.town.actionManager.registerAction(
                   new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger,()=>{this.handleMoveCommodies()})
                 )
                 this.hl.addMesh(board.cards.shown.town,new BABYLON.Color3(1,1,1));
+                }
               }
             }
             break
@@ -359,15 +353,15 @@
 
       animateDeckPromise(array, position) {
         return new Promise ((resolve)=>{
-          this.animateDeck(array, position, () => resolve(), 0)
+          this.animateDeck(array, position, () => resolve(), array.length-1)
         })
       },
 
       animateDeck (array, position, resolve, index){
-        if(index < array.length -1 ){
+        if(index > 0 ){
           let animation = this.moveModel(array[index], position, "z", .15, - Math.PI)
           animation.onAnimationEnd = () => {
-            index++
+            index--
             position.y += .005
             this.animateDeck(array, position, resolve, index)
           }

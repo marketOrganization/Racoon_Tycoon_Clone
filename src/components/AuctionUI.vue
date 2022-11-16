@@ -2,6 +2,7 @@
     <div>
         <form class = "auction-container" v-if="player.currBidder"  @submit="handleAuctionRound">
             <div class="auction-words">Your Turn To Bid!</div>
+            <img :src="game.shownRailRoads[game.auctionCardIndex].imageLink" class="auction-image"/>
             <input class="input-form" v-model="bidValueInput" placeholder="Bid Value..."/>
             <div class="row">
                 <button class="button-auction" type="submit">Bid</button>
@@ -58,7 +59,7 @@
 <style >
     .auction-container{
         position:absolute;
-        bottom: 30vh;
+        bottom: 20vh;
         left: 35vw;
         width:30vw;
         padding-left: 2%;
@@ -87,6 +88,11 @@
         border-radius: 20px;
         align-self: center;
         box-shadow: 1px 2px 5px black;
+    }
+    .auction-image{
+        width: 50%;
+        border-radius:10px;
+        box-shadow:10px 10px 10px black
     }
     .button-auction:hover{
         box-shadow: 5px 5px 10px black;
