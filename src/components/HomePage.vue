@@ -46,6 +46,7 @@
         START GAME
       </button>
       <UI v-if="gameRunning"></UI>
+      <img :src="mute" class="mute" @click="(e)=>{handleMute(e)}"/>
     </div>
     <div v-if="game">
       <GameOver v-if="game.gameOver" />
@@ -59,6 +60,8 @@ import UserMessage from "./UserMessage.vue";
 import UI from "./UI.vue";
 import LoadScene from "./LoadScene.vue";
 import title from "../../public/assets/RacoionTycoonTitle_preview_rev_2.png";
+import mute from "../../public/mute.png"
+import unmute from"../../public/unmute.png"
 import GameOver from "./GameOver.vue";
 import { mapState, mapMutations, mapGetters } from "vuex";
 export default {
@@ -77,6 +80,8 @@ export default {
       title: title,
       titleClass: "title-big",
       formClass: "start-forms",
+      mute:mute,
+      unmute:unmute
     };
   },
   computed: {
@@ -131,7 +136,7 @@ export default {
     });
 
     await this.getSocket().on("invalidRoom", () => {
-      console.log("invalid room");
+      this.updateMessage("Game Does Not Exist")
     });
 
     await this.getSocket().on("playerJoined", async () => {
@@ -253,6 +258,13 @@ export default {
         this.updateAudio({ background: audio });
       }
     },
+    async handleMute(e) {
+      console.log(e.target)
+      let audio = this.getAudio()
+      audio.background.volume === 0 ? audio.background.volume = .05 : audio.background.volume = 0
+      audio.background.volume === 0 ? e.target.src = this.unmute: e.target.src = this.mute
+      this.updateAudio(audio)
+    },
     async handleJoinGame(e) {
       e.preventDefault();
       this.roomId = this.$refs.joinGameInput.value;
@@ -264,7 +276,7 @@ export default {
       this.makingName = false;
       let audio = {};
       audio.background = new Audio("background.mp3");
-      audio.background.volume = 0.05;
+      audio.background.volume = 0.025;
       audio.background.loop = true;
       audio.background.play();
 

@@ -1481,6 +1481,6 @@ canvas {
   height: 100vh;
   z-index: -1;
   color: rgb(242, 205, 184);
-  background-color: rgb(90, 41, 0);
+  background-color: rgb(32, 16, 3);
 }
 </style>
