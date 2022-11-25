@@ -231,6 +231,7 @@ export default {
       "updateGameCanStart",
       "updateMessage",
       "updateAudio",
+      "updateGameOver"
     ]),
 
     //pre game methods
