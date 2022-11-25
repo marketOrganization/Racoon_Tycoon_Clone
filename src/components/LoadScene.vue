@@ -1384,6 +1384,7 @@ export default {
         !player.pickingTownCommodies &&
         !player.buyingBuilding
       ) {
+        console.log(game.shownBuildings[index])
         if (game.shownBuildings[index].price <= player.money) {
           player.buyingBuilding = true;
           game.players[game.turnIndex] = player;
