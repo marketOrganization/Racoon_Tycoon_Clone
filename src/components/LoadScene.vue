@@ -361,36 +361,37 @@ export default {
             0.7,
             null
           ).onAnimationEnd = () => {
-            this.moveModel(
-              board.cards.decks.railroads[0],
-              newPosition,
-              "x",
-              0.3,
-              0
-            ).onAnimationEnd = () => {
-              board.cards.shown.railroads.splice(
-                index,
-                1,
-                ...board.cards.decks.railroads.splice(0, 1)
-              );
-              board.cards.shown.railroads[index].actionManager =
-                new BABYLON.ActionManager(this.scene);
-              board.cards.shown.railroads[index].actionManager.registerAction(
-                new BABYLON.ExecuteCodeAction(
-                  BABYLON.ActionManager.OnPickTrigger,
-                  () => {
-                    this.handleStartAuction(index);
-                  }
-                )
-              );
-              this.hl.addMesh(
-                board.cards.shown.railroads[index],
-                new BABYLON.Color3(1, 1, 1)
-              );
-            };
+            if(board.cards.decks.railroads[0]){
+              this.moveModel(
+                board.cards.decks.railroads[0],
+                newPosition,
+                "x",
+                0.3,
+                0
+              ).onAnimationEnd = () => {
+                board.cards.shown.railroads.splice(
+                  index,
+                  1,
+                  ...board.cards.decks.railroads.splice(0, 1)
+                );
+                board.cards.shown.railroads[index].actionManager =
+                  new BABYLON.ActionManager(this.scene);
+                board.cards.shown.railroads[index].actionManager.registerAction(
+                  new BABYLON.ExecuteCodeAction(
+                    BABYLON.ActionManager.OnPickTrigger,
+                    () => {
+                      this.handleStartAuction(index);
+                    }
+                  )
+                );
+                this.hl.addMesh(
+                  board.cards.shown.railroads[index],
+                  new BABYLON.Color3(1, 1, 1)
+                );
+              };
+            }
           };
           break;
-
         case "TOWN":
           newPosition = {
             x: board.cards.shown.town.position._x,
@@ -422,7 +423,7 @@ export default {
                   new BABYLON.ExecuteCodeAction(
                     BABYLON.ActionManager.OnPickTrigger,
                     () => {
-                      this.handleMoveCommodies();
+                      this.handleBuyTown();
                     }
                   )
                 );
@@ -434,7 +435,6 @@ export default {
             }
           };
           break;
-
         case "BUILDING":
           newPosition = {
             x: board.cards.shown.buildings[index].position._x,
@@ -448,33 +448,35 @@ export default {
             0.7,
             null
           ).onAnimationEnd = () => {
-            this.moveModel(
-              board.cards.decks.buildings[0],
-              newPosition,
-              "x",
-              0.3,
-              0
-            ).onAnimationEnd = () => {
-              board.cards.shown.buildings.splice(
-                index,
-                1,
-                ...board.cards.decks.buildings.splice(0, 1)
-              );
-              board.cards.shown.buildings[index].actionManager =
-                new BABYLON.ActionManager(this.scene);
-              board.cards.shown.buildings[index].actionManager.registerAction(
-                new BABYLON.ExecuteCodeAction(
-                  BABYLON.ActionManager.OnPickTrigger,
-                  () => {
-                    this.handleBuyBuilding(index);
-                  }
-                )
-              );
-              this.hl.addMesh(
-                board.cards.shown.buildings[index],
-                new BABYLON.Color3(1, 1, 1)
-              );
-            };
+            if(board.cards.decks.buildings[0]){
+              this.moveModel(
+                board.cards.decks.buildings[0],
+                newPosition,
+                "x",
+                0.3,
+                0
+              ).onAnimationEnd = () => {
+                board.cards.shown.buildings.splice(
+                  index,
+                  1,
+                  ...board.cards.decks.buildings.splice(0, 1)
+                );
+                board.cards.shown.buildings[index].actionManager =
+                  new BABYLON.ActionManager(this.scene);
+                board.cards.shown.buildings[index].actionManager.registerAction(
+                  new BABYLON.ExecuteCodeAction(
+                    BABYLON.ActionManager.OnPickTrigger,
+                    () => {
+                      this.handleBuyBuilding(index);
+                    }
+                  )
+                );
+                this.hl.addMesh(
+                  board.cards.shown.buildings[index],
+                  new BABYLON.Color3(1, 1, 1)
+                );
+              };
+            }
           };
           break;
 
@@ -1346,7 +1348,11 @@ export default {
         !player.buyingTown &&
         !player.buyingBuilding
       ) {
-        if (game.shownRailRoads[railroad].minimumPrice > player.money) {
+        let index = 0
+        if(game.shownRailRoads[railroad]){
+          index = railroad
+        }
+        if (game.shownRailRoads[index].minimumPrice > player.money) {
           this.updateMessage("Not Enough Money");
         } else {
           if (
@@ -1355,7 +1361,7 @@ export default {
             !player.pickingProduceItems
           ) {
             console.log("here");
-            game.payload = railroad;
+            game.payload = index;
             game.action = "START_AUCTION";
             this.getSocket().emit("ACTION", game);
           }
