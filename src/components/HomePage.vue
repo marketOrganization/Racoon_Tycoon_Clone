@@ -128,7 +128,17 @@ export default {
     },
   },
   async mounted() {
+    console.log('beginning mounted, gameId: ' + localStorage.getItem('roomId'))
+    if (localStorage.getItem('roomId')){
+      let data = {
+        gameId: localStorage.getItem('roomId')
+      }
+      console.log('data: ' + data.gameId);
+      await this.getSocket().emit("REFRESHED", data);
+    }
+
     this.selectCreateGameInput();
+
     await this.getSocket().on("gameStarted", async (data) => {
       this.updateGame(data.game);
       this.updatePlayer(
@@ -139,6 +149,10 @@ export default {
       this.updateGameRunning(true);
       this.handleAnimateTitle();
       this.formClass = "hidden";
+      console.log('roomId: ' + this.roomId)
+      console.log('playerName: ', this.getPlayer().name)
+      localStorage.setItem('roomId', this.roomId)
+      localStorage.setItem('playerName', this.getPlayer().name)
     });
 
     await this.getSocket().on("invalidRoom", () => {
