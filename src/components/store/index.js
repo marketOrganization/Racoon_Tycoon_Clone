@@ -11,7 +11,7 @@ export default Vuex.createStore({
       message:null,
       gameRunning: false,
       board: {},
-      FPS: null,
+      confirmQuery: {bool:false},
       gameOver: false,
       allStats: false,
       personalStats: false,
@@ -22,8 +22,8 @@ export default Vuex.createStore({
     updateGame(state, payload){
       state.game = payload
     },
-    updateFPS(state, payload){
-      state.FPS = payload
+    updateConfirmQuery(state, payload){
+      state.confirmQuery = payload
     },
     updateName(state, payload){
       state.name = payload
@@ -90,6 +90,9 @@ export default Vuex.createStore({
     },
     getAudio: (state) => () => {
       return state.audio
+    },
+    getConfirmQuery: (state) => () =>  {
+      return state.confirmQuery
     }
   }
 })

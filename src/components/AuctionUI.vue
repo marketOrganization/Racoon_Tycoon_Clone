@@ -6,7 +6,8 @@
             <input class="input-form" v-model="bidValueInput" placeholder="Bid Value..."/>
             <div class="row">
                 <button class="button-auction" type="submit">Bid</button>
-                <button class="button-auction" @click="handleDropOutAuction">Out</button>
+                <button v-if="game.highestBidderIndex === null" class="button-auction" @click="handleDropOutAuction">Cancel</button>
+                <button v-else class="button-auction" @click="handleDropOutAuction">Out</button>
             </div>
             <div class="auction-words">Must Bid Higher Than: {{game.bid}}</div>
         </form>
@@ -28,7 +29,7 @@
             }
         },
         computed:{
-            ...mapState(["game", "player", "socket", "message"]),
+            ...mapState(["game", "player", "socket", "message", "confirmQuery"]),
             ...mapGetters(["getGame", "getSocket"])
         },
         methods:{
@@ -36,7 +37,7 @@
             handleAuctionRound(e){
                 e.preventDefault()
                 let game = this.getGame()
-                if(parseInt(this.bidValueInput) <= game.players[game.turnIndex].money){
+                if(parseInt(this.bidValueInput) <= game.players[game.auctionIndex].money){
                     game.payload = parseInt(this.bidValueInput)
                     game.action = "AUCTION_ROUND"
                     this.getSocket().emit("ACTION", game)
@@ -49,7 +50,9 @@
                 e.preventDefault()
                 let game = this.getGame()
                 game.action = "AUCTION_OUT"
-                game.messageFeed.push(`${game.players[game.auctionIndex].name} dropped out of the bid.`)
+                if(game.highestBidderIndex){
+                    game.messageFeed.push(`${game.players[game.auctionIndex].name} dropped out of the bid.`)
+                }
                 this.getSocket().emit("ACTION", game)
             }
         }

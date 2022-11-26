@@ -34,6 +34,10 @@
         >
       </div>
       <LoadScene />
+      <div class="confirm-container" v-if="confirmQuery.bool">
+            <button class="confirm-button" @click="()=>{handleConfirm(confirmQuery)}">Confirm</button>
+            <button class="confirm-button" @click="()=>{handleConfirm(false)}">Cancel</button>
+        </div>
       <button
         v-if="
           !gameRunning && game
@@ -95,6 +99,7 @@ export default {
       "message",
       "gameOver",
       "audio",
+      "confirmQuery"
     ]),
     ...mapGetters([
       "getGame",
@@ -232,7 +237,8 @@ export default {
       "updateGameCanStart",
       "updateMessage",
       "updateAudio",
-      "updateGameOver"
+      "updateGameOver",
+      "updateConfirmQuery"
     ]),
 
     selectCreateGameInput() {
@@ -302,6 +308,134 @@ export default {
       await this.getSocket().emit("addNameToGame", data);
       this.$refs.addNameToGame.value = "";
       this.makingName = false;
+    },
+
+    handleConfirm(choice){
+      this.updateConfirmQuery({bool:false})
+      if(!choice){return}
+      switch(choice.type){
+        case "RAILROAD":
+          this.handleStartAuction(choice.payload)
+          break
+
+        case "TOWN":
+          this.handleBuyTown()
+          break
+
+        case "BUILDING":
+          this.handleBuyBuilding(choice.payload)
+          break
+
+        default:
+          break
+      }
+    },
+
+    //railroad methods
+    handleStartAuction(railroad) {
+      let player = this.getPlayer();
+      let game = this.getGame();
+      if (
+        game.players[game.turnIndex].name === player.name &&
+        !player.discarding &&
+        !player.isInAuction &&
+        !player.pickingProduceItems &&
+        !player.selling &&
+        !player.buyingTown &&
+        !player.buyingBuilding
+      ) {
+        let index = 0
+        if(game.shownRailRoads[railroad]){
+          index = railroad
+        }
+        if (game.shownRailRoads[index].minimumPrice > player.money) {
+          this.updateMessage("Not Enough Money");
+        } else {
+          if (
+            !player.inAuction &&
+            !player.selling &&
+            !player.pickingProduceItems
+          ) {
+            game.payload = index;
+            game.action = "START_AUCTION";
+            this.getSocket().emit("ACTION", game);
+          }
+        }
+      } else {
+        this.updateMessage("Not Your Turn");
+      }
+    },
+
+    //building methods
+    handleBuyBuilding(index) {
+      let player = this.getPlayer();
+      let game = this.getGame();
+      if (
+        game.players[game.turnIndex].name === player.name &&
+        !player.discarding &&
+        !player.isInAuction &&
+        !player.pickingProduceItems &&
+        !player.selling &&
+        !player.pickingTownCommodies &&
+        !player.buyingBuilding
+      ) {
+        console.log(game.shownBuildings[index])
+        if (game.shownBuildings[index].price <= player.money) {
+          player.buyingBuilding = true;
+          game.players[game.turnIndex] = player;
+          game.buildingBuyIndex = index;
+          game.action = "BUY_BUILDING";
+          this.getSocket().emit("ACTION", game);
+        } else {
+          this.updateMessage("Not Enough Money");
+        }
+      } else {
+        this.updateMessage("Cannot Do That Now");
+      }
+    },
+
+    //town methods
+    handleBuyTown() {
+      let player = this.getPlayer();
+      let game = this.getGame();
+      if (
+        game.players[game.turnIndex].name === player.name &&
+        !player.discarding &&
+        !player.isInAuction &&
+        !player.pickingProduceItems &&
+        !player.selling &&
+        !player.pickingTownCommodies &&
+        !player.buyingBuilding
+      ) {
+        if (
+          player.commodies.filter((commodity) => {
+            return commodity.name === game.avaiableTown.specificType;
+          }).length >=
+          game.avaiableTown.specificPrice - player.townBonus
+        ) {
+          game.action = "BUY_TOWN_SPECIFIC";
+          this.getSocket().emit("ACTION", game);
+        } else {
+          this.updateMessage(
+            `Not Enough ${
+              game.avaiableTown.specificType
+            }. You may purchase with any ${
+              game.avaiableTown.anyPrice - player.townBonus
+            } commodies`
+          );
+          if (
+            player.commodies.length >=
+            game.avaiableTown.anyPrice - player.townBonus
+          ) {
+            player.pickingTownCommodies = true;
+            this.updatePlayer(player);
+          } else {
+            this.updateMessage(`Not Enough Commodies`);
+          }
+        }
+      } else {
+        this.updateMessage("Cannot Do That Now.");
+      }
     },
 
     //animations
@@ -417,6 +551,29 @@ canvas {
   align-items: space-between;
   top: 60vh;
   justify-content: end;
+}
+
+.confirm-container{
+  position: absolute;
+  display: flex;
+  flex-flow: row nowrap;
+  width: 40vw;
+  right: 30vw;
+  justify-content: center;
+}
+.confirm-button{
+  font-size: 2em;
+  font-family: main;
+  background: none;
+  border: none;
+  font-weight: bolder;
+  text-decoration: none;
+  color: rgb(167, 142, 119);
+  padding: 15px;
+  padding-left: 25px;
+  padding-right: 25px;
+  border-radius: 20px;
+  text-shadow: rgb(0, 0, 0) 2px 2px 2px;
 }
 
 .start-form {
