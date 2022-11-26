@@ -123,6 +123,7 @@ export default {
     },
   },
   async mounted() {
+    this.selectCreateGameInput();
     await this.getSocket().on("gameStarted", async (data) => {
       this.updateGame(data.game);
       this.updatePlayer(
@@ -233,6 +234,10 @@ export default {
       "updateAudio",
       "updateGameOver"
     ]),
+
+    selectCreateGameInput() {
+      this.$refs.createGameInput.select();
+    },
 
     //pre game methods
     async handleStartGame() {
