@@ -28,7 +28,7 @@
             }
         },
         computed:{
-            ...mapState(["game", "player", "socket", "message"]),
+            ...mapState(["game", "player", "socket", "message", "confirmQuery"]),
             ...mapGetters(["getGame", "getSocket"])
         },
         methods:{

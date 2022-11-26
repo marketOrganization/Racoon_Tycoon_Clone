@@ -70,7 +70,7 @@ export default {
       "gameCanStart",
       "message",
       "board",
-      "FPS",
+      "confirmQuery"
     ]),
     ...mapGetters([
       "getGame",
@@ -80,6 +80,7 @@ export default {
       "getBoard",
       "getFPS",
       "getAudio",
+      "getConfirmQuery"
     ]),
   },
   data() {
@@ -107,6 +108,7 @@ export default {
       "updateGameCanStart",
       "updateMessage",
       "updateBoard",
+      "updateConfirmQuery"
     ]),
 
     setUpBoard(game) {
@@ -379,7 +381,7 @@ export default {
                   new BABYLON.ExecuteCodeAction(
                     BABYLON.ActionManager.OnPickTrigger,
                     () => {
-                      this.handleStartAuction(index);
+                      this.handleConfirmQuery("RAILROAD", index);
                     }
                   )
                 );
@@ -422,7 +424,7 @@ export default {
                   new BABYLON.ExecuteCodeAction(
                     BABYLON.ActionManager.OnPickTrigger,
                     () => {
-                      this.handleBuyTown();
+                      this.handleConfirmQuery("TOWN", null);
                     }
                   )
                 );
@@ -466,7 +468,7 @@ export default {
                   new BABYLON.ExecuteCodeAction(
                     BABYLON.ActionManager.OnPickTrigger,
                     () => {
-                      this.handleBuyBuilding(index);
+                      this.handleConfirmQuery("BUILDING",index);
                     }
                   )
                 );
@@ -765,7 +767,7 @@ export default {
           new BABYLON.ExecuteCodeAction(
             BABYLON.ActionManager.OnPickTrigger,
             () => {
-              this.handleStartAuction(i);
+              this.handleConfirmQuery("RAILROAD",i);
             }
           )
         );
@@ -778,7 +780,7 @@ export default {
           new BABYLON.ExecuteCodeAction(
             BABYLON.ActionManager.OnPickTrigger,
             () => {
-              this.handleBuyBuilding(i);
+              this.handleConfirmQuery("BUILDING",i);
             }
           )
         );
@@ -791,7 +793,7 @@ export default {
         new BABYLON.ExecuteCodeAction(
           BABYLON.ActionManager.OnPickTrigger,
           () => {
-            this.handleBuyTown();
+            this.handleConfirmQuery("TOWN", null);
           }
         )
       );
@@ -1333,119 +1335,20 @@ export default {
       });
     },
 
-    //railroad methods
-    handleStartAuction(railroad) {
-      console.log("here");
-      let player = this.getPlayer();
-      let game = this.getGame();
-      if (
-        game.players[game.turnIndex].name === player.name &&
-        !player.discarding &&
-        !player.isInAuction &&
-        !player.pickingProduceItems &&
-        !player.selling &&
-        !player.buyingTown &&
-        !player.buyingBuilding
-      ) {
-        let index = 0
-        if(game.shownRailRoads[railroad]){
-          index = railroad
-        }
-        if (game.shownRailRoads[index].minimumPrice > player.money) {
-          this.updateMessage("Not Enough Money");
-        } else {
-          if (
-            !player.inAuction &&
-            !player.selling &&
-            !player.pickingProduceItems
-          ) {
-            console.log("here");
-            game.payload = index;
-            game.action = "START_AUCTION";
-            this.getSocket().emit("ACTION", game);
-          }
-        }
-      } else {
-        this.updateMessage("Not Your Turn");
-      }
-    },
-
-    //building methods
-    handleBuyBuilding(index) {
-      let player = this.getPlayer();
-      let game = this.getGame();
-      if (
-        game.players[game.turnIndex].name === player.name &&
-        !player.discarding &&
-        !player.isInAuction &&
-        !player.pickingProduceItems &&
-        !player.selling &&
-        !player.pickingTownCommodies &&
-        !player.buyingBuilding
-      ) {
-        console.log(game.shownBuildings[index])
-        if (game.shownBuildings[index].price <= player.money) {
-          player.buyingBuilding = true;
-          game.players[game.turnIndex] = player;
-          game.buildingBuyIndex = index;
-          game.action = "BUY_BUILDING";
-          this.getSocket().emit("ACTION", game);
-        } else {
-          this.updateMessage("Not Enough Money");
-        }
-      } else {
-        this.updateMessage("Cannot Do That Now");
-      }
-    },
-
-    //town methods
-    handleBuyTown() {
-      let player = this.getPlayer();
-      let game = this.getGame();
-      if (
-        game.players[game.turnIndex].name === player.name &&
-        !player.discarding &&
-        !player.isInAuction &&
-        !player.pickingProduceItems &&
-        !player.selling &&
-        !player.pickingTownCommodies &&
-        !player.buyingBuilding
-      ) {
-        if (
-          player.commodies.filter((commodity) => {
-            return commodity.name === game.avaiableTown.specificType;
-          }).length >=
-          game.avaiableTown.specificPrice - player.townBonus
-        ) {
-          game.action = "BUY_TOWN_SPECIFIC";
-          this.getSocket().emit("ACTION", game);
-        } else {
-          this.updateMessage(
-            `Not Enough ${
-              game.avaiableTown.specificType
-            }. You may purchase with any ${
-              game.avaiableTown.anyPrice - player.townBonus
-            } commodies`
-          );
-          if (
-            player.commodies.length >=
-            game.avaiableTown.anyPrice - player.townBonus
-          ) {
-            player.pickingTownCommodies = true;
-            this.updatePlayer(player);
-          } else {
-            this.updateMessage(`Not Enough Commodies`);
-          }
-        }
-      } else {
-        this.updateMessage("Cannot Do That Now.");
-      }
+    //confirm click functions
+    handleConfirmQuery(type, payload){
+      this.updateConfirmQuery({
+        bool:true,
+        payload: payload,
+        type: type
+      })
     },
 
     //selling
     handleSellStart(sellingCommodity) {
       let player = this.getPlayer();
       let game = this.getGame();
+      this.updateConfirmQuery({bool:false})
       if (
         game.players[game.turnIndex].name === player.name &&
         !player.discarding &&
