@@ -34,7 +34,6 @@ export default {
     this.getSocket().on("gameStarted", (data) => {
       this.setUpBoard(data.game);
     });
-    //this i scarl sbranch
     this.getSocket().on("UPDATE_GAME", (game) => {
       switch (game.animation.action) {
         case "MOVE_COMMODIES":
