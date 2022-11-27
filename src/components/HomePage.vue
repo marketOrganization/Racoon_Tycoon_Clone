@@ -130,6 +130,7 @@ export default {
   async mounted() {
     console.log('beginning mounted, gameId: ' + localStorage.getItem('roomId'))
     if (localStorage.getItem('roomId')){
+      this.updatePlayer({name: localStorage.getItem('playerName')})
       let data = {
         gameId: localStorage.getItem('roomId')
       }
