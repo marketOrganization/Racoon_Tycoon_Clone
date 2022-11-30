@@ -5,7 +5,9 @@
 
 ### 8/18/2022
 
-#### [GitHub](https://github.com/carlmenke) | [LinkedIn](https://www.linkedin.com/in/carl-menke-333226139/) | [Deployed](racoontycoon.herokuapp.com)
+#### [GitHub](https://github.com/carlmenke) 
+#### [LinkedIn](https://www.linkedin.com/in/carl-menke-333226139/) 
+#### [Deployed](https://racoontycoon.herokuapp.com)
 
 ---
 
