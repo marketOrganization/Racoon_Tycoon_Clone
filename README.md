@@ -53,7 +53,7 @@ Final Game Board Screenshot:
 
 ## **_Getting Started_**
 
-[Play Here](https://general-drawer.surge.sh/)
+[Play Here](https://racoontycoon.herokuapp.com)
 
 1. Create or Join a Game
 2. Player one is up first
