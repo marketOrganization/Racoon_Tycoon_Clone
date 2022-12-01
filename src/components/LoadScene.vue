@@ -22,18 +22,20 @@ import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 import { mapGetters, mapState, mapMutations } from "vuex";
 export default {
   name: "LoadScene",
+
   mounted() {
     this.canvas = this.$refs.bjsCanvas;
 
     this.flip = new Audio("flip.mp3");
 
-    if (this.canvas) {
-      this.createScene();
-    }
-
     this.getSocket().on("gameStarted", (data) => {
       this.setUpBoard(data.game);
     });
+
+    this.getSocket().on("REJOIN_6", (data) => {
+      this.setUpBoard(data.game);
+    })
+
     this.getSocket().on("UPDATE_GAME", (game) => {
       switch (game.animation.action) {
         case "MOVE_COMMODIES":
@@ -57,8 +59,15 @@ export default {
       }
       game.animation.action = null;
       game.animation.payload = {};
-      this.updateGame();
+      this.updateGame(game);
     });
+  },
+  watch:{
+    canvas(){
+      if (this.canvas) {
+        this.createScene();
+      }
+    }
   },
   computed: {
     ...mapState([
@@ -112,10 +121,6 @@ export default {
     ]),
 
     setUpBoard(game) {
-      // const railRoadDeckPosition = new Vector3(19, .94, -3.3875)
-      // const townDeckPosition = new Vector3(18.051, .94, -3.39)
-      // const buildingDeckPositin = new Vector3(18.7171, .94, -2.969)
-
       let newTarget = new Vector3(18.4, 1.1, -3.2);
       let newPosition = new Vector3(18.4, 2.2, -2.3);
       this.moveCamera(newPosition, newTarget, game, true);
@@ -125,7 +130,6 @@ export default {
       if (!this.camera) {
         return;
       }
-      console.log(this.camera);
       const frameRate = 10;
       let setPosition = new Animation(
         "setPosition",
@@ -188,31 +192,31 @@ export default {
       this.loadTexturesAsync(game).then(async (textures) => {
         let board = this.createAllCards(game, textures);
 
-        this.hl.addMesh(
+        board.cards.shown.railroads[0]?this.hl.addMesh(
           board.cards.shown.railroads[0],
           new BABYLON.Color3(1, 0.9, 0.8)
-        );
-        this.hl.addMesh(
+        ):null
+        board.cards.shown.railroads[1]?this.hl.addMesh(
           board.cards.shown.railroads[1],
           new BABYLON.Color3(1, 1, 1)
-        );
-        this.hl.addMesh(board.cards.shown.town, new BABYLON.Color3(1, 1, 1));
-        this.hl.addMesh(
+        ):null
+        board.cards.shown.town? this.hl.addMesh(board.cards.shown.town, new BABYLON.Color3(1, 1, 1)):null
+        board.cards.shown.buildings[0]?this.hl.addMesh(
           board.cards.shown.buildings[0],
           new BABYLON.Color3(1, 1, 1)
-        );
-        this.hl.addMesh(
+        ):null
+        board.cards.shown.buildings[1]?this.hl.addMesh(
           board.cards.shown.buildings[1],
           new BABYLON.Color3(1, 1, 1)
-        );
-        this.hl.addMesh(
+        ):null
+        board.cards.shown.buildings[2]?this.hl.addMesh(
           board.cards.shown.buildings[2],
           new BABYLON.Color3(1, 1, 1)
-        );
-        this.hl.addMesh(
+        ):null
+        board.cards.shown.buildings[3]?this.hl.addMesh(
           board.cards.shown.buildings[3],
           new BABYLON.Color3(1, 1, 1)
-        );
+        ):null
 
         await this.animateDeckPromise(board.cards.decks.railroads, {
           x: 19,
@@ -489,12 +493,6 @@ export default {
     handleMoveCommodies(game) {
       for (let key in game.animation.payload) {
         let board = this.getBoard();
-        console.log(
-          board,
-          board.commodies[key],
-          game.animation.payload[key],
-          key
-        );
         board.commodies[key] = this.moveCommodity(
           game.animation.payload[key],
           board,
@@ -615,7 +613,9 @@ export default {
 
     animateDeckPromise(array, position) {
       return new Promise((resolve) => {
-        this.animateDeck(array, position, () => resolve(), array.length - 1);
+        if(array.length){
+          this.animateDeck(array, position, () => resolve(), array.length? array.length - 1 : 1);
+        }else(resolve())
       });
     },
 
@@ -669,8 +669,6 @@ export default {
         new BABYLON.SubMesh(1, 1, verticesCount, 6, 24, cardGeometry),
       ];
 
-      console.log(cardGeometry.subMeshes[0]);
-
       return cardGeometry;
     },
 
@@ -690,39 +688,43 @@ export default {
       let board = this.getBoard();
 
       //towns
-      for (let i = 0; i < game.townDeck.length; i++) {
-        board.cards.decks.towns.push(
-          this.createCard(
-            game.townDeck[i],
-            new Vector3(18.051, 0.94, -2),
-            textures[game.townDeck[i].imageLink],
-            textures["townCover.jpg"],
-            cardGeometry
-          )
-        );
+      if(game.townDeck.length){
+        for (let i = 0; i < game.townDeck.length; i++) {
+          board.cards.decks.towns.push(
+            this.createCard(
+              game.townDeck[i],
+              new Vector3(18.051, 0.94, -2),
+              textures[game.townDeck[i].imageLink],
+              textures["townCover.jpg"],
+              cardGeometry
+            )
+          );
+        }
       }
-      board.cards.shown.town = this.createCard(
+      game.avaiableTown ? board.cards.shown.town = this.createCard(
         game.avaiableTown,
         new Vector3(17.8, 0.94, -2),
         textures[game.avaiableTown.imageLink],
         textures["townCover.jpg"],
         cardGeometry
-      );
+      ): board.cards.shown.town = null
 
       //railroads
-      for (let i = 0; i < game.railRoadDeck.length; i++) {
-        board.cards.decks.railroads.push(
-          this.createCard(
-            game.railRoadDeck[i],
-            new Vector3(19, 0.94, -2),
-            textures[game.railRoadDeck[i].imageLink],
-            textures["railroadCover.jpg"],
-            cardGeometry
-          )
-        );
+      if(game.railRoadDeck.length){
+        for (let i = 0; i < game.railRoadDeck.length; i++) {
+          board.cards.decks.railroads.push(
+            this.createCard(
+              game.railRoadDeck[i],
+              new Vector3(19, 0.94, -2),
+              textures[game.railRoadDeck[i].imageLink],
+              textures["railroadCover.jpg"],
+              cardGeometry
+            )
+          );
+        }
       }
       for (let i = 0; i < 2; i++) {
-        board.cards.shown.railroads.push(
+        game.shownRailRoads[i] ? board.cards.shown.railroads.push(
           this.createCard(
             game.shownRailRoads[i],
             new Vector3(18, 0.94, -2),
@@ -730,23 +732,25 @@ export default {
             textures["railroadCover.jpg"],
             cardGeometry
           )
-        );
+        ) : board.cards.shown.railroads.push(null)
       }
 
       //buildings
-      for (let i = 0; i < game.buildingDeck.length; i++) {
-        board.cards.decks.buildings.push(
-          this.createCard(
-            game.buildingDeck[i],
-            new Vector3(18.7, 0.94, -2),
-            textures[game.buildingDeck[i].imageLink],
-            textures["buildingCover.jpg"],
-            buildingGeometry
-          )
-        );
+      if(game.buildingDeck.length){
+        for (let i = 0; i < game.buildingDeck.length; i++) {
+          board.cards.decks.buildings.push(
+            this.createCard(
+              game.buildingDeck[i],
+              new Vector3(18.7, 0.94, -2),
+              textures[game.buildingDeck[i].imageLink],
+              textures["buildingCover.jpg"],
+              buildingGeometry
+            )
+          );
+        }
       }
       for (let i = 0; i < 4; i++) {
-        board.cards.shown.buildings.push(
+        game.shownBuildings[i] ? board.cards.shown.buildings.push(
           this.createCard(
             game.shownBuildings[i],
             new Vector3(18, 0.94, -2),
@@ -754,36 +758,38 @@ export default {
             textures["buildingCover.jpg"],
             buildingGeometry
           )
-        );
+        ):board.cards.shown.buildings.push(null)
       }
 
       //ad actionmanagers
-
-      console.log(board);
       for (let i = 0; i < 2; i++) {
-        board.cards.shown.railroads[i].actionManager =
-          new BABYLON.ActionManager(this.scene);
-        board.cards.shown.railroads[i].actionManager.registerAction(
-          new BABYLON.ExecuteCodeAction(
-            BABYLON.ActionManager.OnPickTrigger,
-            () => {
-              this.handleConfirmQuery("RAILROAD",i);
-            }
-          )
-        );
+        if(board.cards.shown.railroads[i]){
+          board.cards.shown.railroads[i].actionManager =
+            new BABYLON.ActionManager(this.scene);
+          board.cards.shown.railroads[i].actionManager.registerAction(
+            new BABYLON.ExecuteCodeAction(
+              BABYLON.ActionManager.OnPickTrigger,
+              () => {
+                this.handleConfirmQuery("RAILROAD",i);
+              }
+            )
+          );
+        }
       }
 
       for (let i = 0; i < 4; i++) {
-        board.cards.shown.buildings[i].actionManager =
-          new BABYLON.ActionManager(this.scene);
-        board.cards.shown.buildings[i].actionManager.registerAction(
-          new BABYLON.ExecuteCodeAction(
-            BABYLON.ActionManager.OnPickTrigger,
-            () => {
-              this.handleConfirmQuery("BUILDING",i);
-            }
-          )
-        );
+        if(board.cards.shown.buildings[i]){
+          board.cards.shown.buildings[i].actionManager =
+            new BABYLON.ActionManager(this.scene);
+          board.cards.shown.buildings[i].actionManager.registerAction(
+            new BABYLON.ExecuteCodeAction(
+              BABYLON.ActionManager.OnPickTrigger,
+              () => {
+                this.handleConfirmQuery("BUILDING",i);
+              }
+            )
+          );
+        }
       }
 
       board.cards.shown.town.actionManager = new BABYLON.ActionManager(
@@ -802,6 +808,27 @@ export default {
     },
 
     moveModel(model, position, rotationAxis, duration, rotationValue) {
+      if(!model) {
+        let skipBox = BABYLON.MeshBuilder.CreateBox(
+          "skipBox",
+          {size:.001},
+          this.scene
+        );
+        let skip = new Animation("skip", "position.x", 1, Animation.ANIMATIONTYPE_FLOAT, Animation.ANIMATIONLOOPMODE_CONSTANT)
+        const skipFrames = [
+          {
+            frame:0,
+            value:0
+          },
+          {
+            frame:1,
+            value:0
+          }
+        ]
+        skip.setKeys(skipFrames)
+        skipBox.animations.push(skip)
+        return this.scene.beginDirectAnimation(skipBox,[skip], 0, 0 , false)
+      }
       const frameRate = 30;
       let positionX = new Animation(
         "positionX",
@@ -926,18 +953,18 @@ export default {
     loadTexturesAsync(game) {
       return new Promise((resolve) => {
         let textureUrls = [];
-        textureUrls.push(game.avaiableTown.imageLink);
+        game.avaiableTown ? textureUrls.push(game.avaiableTown.imageLink): null;
         for (let i = 0; i < game.railRoadDeck.length; i++) {
-          textureUrls.push(game.railRoadDeck[i].imageLink);
+          game.railRoadDeck[i]?textureUrls.push(game.railRoadDeck[i].imageLink):null
         }
         for (let i = 0; i < game.townDeck.length; i++) {
-          textureUrls.push(game.townDeck[i].imageLink);
+          game.townDeck[i]?textureUrls.push(game.townDeck[i].imageLink):null;
         }
         for (let i = 0; i < game.buildingDeck.length; i++) {
-          textureUrls.push(game.buildingDeck[i].imageLink);
+          game.buildingDeck[i]?textureUrls.push(game.buildingDeck[i].imageLink):null;
         }
         for (let i = 0; i < 4; i++) {
-          textureUrls.push(game.shownBuildings[i].imageLink);
+          game.shownBuildings[i]?textureUrls.push(game.shownBuildings[i].imageLink):null;
         }
         let textures = {};
         for (let i = 0; i < textureUrls.length; i++) {
