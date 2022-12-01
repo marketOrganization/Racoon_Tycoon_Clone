@@ -52,7 +52,6 @@
            ...mapMutations(["updateAllStats"])
         },
         async mounted() {
-            console.log('clearing storage')
             localStorage.clear()
         }
     }

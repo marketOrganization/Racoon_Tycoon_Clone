@@ -4,7 +4,7 @@
       <img :src="title" :class="titleClass" />
       <h2 v-if="message" class="user-message">{{ message }}</h2>
       <UserMessage />
-      <div :class="formClass">
+      <div v-if="!rejoinQuery" :class="formClass">
         <form
           v-if="!gameId"
           @submit="handleCreateGame"
@@ -55,6 +55,13 @@
     <div v-if="game">
       <GameOver v-if="game.gameOver" />
     </div>
+    <div class="rejoin-form" v-if="rejoinQuery">
+      <div class="rejoin-words">You had were in a game when you disconnected. Would you like to attempt to reconnect?</div>
+      <div class="center">
+        <button class="button-form" @click="handleLeaveGame()">Leave Game</button>
+        <button class="button-form" @click="handleRejoinGame()">Rejoin</button>
+      </div>
+    </div>
   </div>
 </template>
   
@@ -85,7 +92,8 @@ export default {
       titleClass: "title-big",
       formClass: "start-forms",
       mute:mute,
-      unmute:unmute
+      unmute:unmute,
+      rejoinQuery: false
     };
   },
   computed: {
@@ -111,7 +119,7 @@ export default {
       "getAudio",
     ]),
   },
-  created() {
+    created() {
     //this.updateSocket(io("https://game-test-birds-eye.herokuapp.com", {}));
     this.updateSocket(io("http://localhost:3000", { }))
     let background = new Audio("background.mp3");
@@ -128,17 +136,12 @@ export default {
     },
   },
   async mounted() {
-    console.log('beginning mounted, gameId: ' + localStorage.getItem('roomId'))
-    if (localStorage.getItem('roomId')){
-      this.updatePlayer({name: localStorage.getItem('playerName')})
-      let data = {
-        gameId: localStorage.getItem('roomId')
-      }
-      console.log('data: ' + data.gameId);
-      await this.getSocket().emit("REFRESHED", data);
+
+    if(parseInt(localStorage.getItem('inGame'))){
+      this.rejoinQuery = true
     }
 
-    this.selectCreateGameInput();
+    this.selectCreateGameInput()
 
     await this.getSocket().on("gameStarted", async (data) => {
       this.updateGame(data.game);
@@ -150,10 +153,9 @@ export default {
       this.updateGameRunning(true);
       this.handleAnimateTitle();
       this.formClass = "hidden";
-      console.log('roomId: ' + this.roomId)
-      console.log('playerName: ', this.getPlayer().name)
       localStorage.setItem('roomId', this.roomId)
       localStorage.setItem('playerName', this.getPlayer().name)
+      localStorage.setItem('inGame', 1 )
     });
 
     await this.getSocket().on("invalidRoom", () => {
@@ -167,6 +169,24 @@ export default {
       };
       await this.getSocket().emit("welcomePlayer", data);
     });
+
+    await this.getSocket().on("REJOIN_2", async (data) => {
+      data.game =  this.getGame()
+      await this.getSocket().emit("REJOIN_3", data);
+    });
+
+    await this.getSocket().on("REJOIN_4", async (data) => {
+      this.updateGame(data.game)
+      this.updatePlayer(
+        data.game.players.filter(
+          (player) => player.name === this.getPlayer().name
+        )[0]
+      );
+      this.updateGameRunning(true);
+      this.handleAnimateTitle();
+      this.formClass = "hidden";
+      await this.getSocket().emit("REJOIN_5", data)
+    })
 
     await this.getSocket().on("joinedRoom", (data) => {
       this.updateGame(data.game);
@@ -198,14 +218,6 @@ export default {
     });
 
     await this.getSocket().on("UPDATE_GAME", (game) => {
-      console.log("GAME:", game);
-      console.log(
-        "PLAYER:",
-        game.players.filter(
-          (player) => player.name === this.getPlayer().name
-        )[0]
-      );
-
       let thisPlayer = game.players.filter(
         (player) => player.name === this.getPlayer().name
       )[0];
@@ -260,6 +272,19 @@ export default {
       this.$refs.createGameInput.select();
     },
 
+    handleLeaveGame() {
+      this.rejoinQuery = false
+      localStorage.clear()
+    },
+    handleRejoinGame() {
+      this.rejoinQuery = false
+      this.updatePlayer({name: localStorage.getItem('playerName')})
+      const data = {
+        gameId: localStorage.getItem('roomId'),
+      }
+      this.getSocket().emit("REJOIN_1", data);
+    },
+
     //pre game methods
     async handleStartGame() {
       const data = {
@@ -286,7 +311,6 @@ export default {
       }
     },
     async handleMute(e) {
-      console.log(e.target)
       let audio = this.getAudio()
       audio.background.volume === 0 ? audio.background.volume = .05 : audio.background.volume = 0
       audio.background.volume === 0 ? e.target.src = this.unmute: e.target.src = this.mute
@@ -394,7 +418,6 @@ export default {
         !player.pickingTownCommodies &&
         !player.buyingBuilding
       ) {
-        console.log(game.shownBuildings[index])
         if (game.shownBuildings[index].price <= player.money) {
           player.buyingBuilding = true;
           game.players[game.turnIndex] = player;
@@ -462,6 +485,41 @@ export default {
 </script>
 
 <style>
+.rejoin-form{
+  position:absolute;
+  right:2vw;
+  top: 20vh;
+  width: 30vw;
+  display: flex;
+  flex-flow: column nowrap;
+  margin: 20px;
+  justify-content: space-between;
+  align-items: space-between;
+  background: rgba(43, 17, 17, 0.839);
+  border: 3px solid rgb(148, 98, 47);
+  border-radius: 50px;
+}
+.center{
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-around;
+  padding-bottom: 10px;
+}
+.rejoin-words{
+  font-size: 2.5em;
+  font-family: main;
+  text-align: center;
+  background: none;
+  border: none;
+  font-weight: bolder;
+  text-decoration: none;
+  color: rgb(167, 142, 119);
+  padding: 15px;
+  padding-left: 25px;
+  padding-right: 25px;
+  border-radius: 20px;
+  text-shadow: rgb(0, 0, 0) 2px 2px 2px;
+}
 @font-face {
   font-family: main;
   src: url("../../public/assets/MaguireThin-eZY8e.otf");
@@ -560,11 +618,10 @@ canvas {
   position: absolute;
   right: 2vw;
   width: 40vw;
-  height: 10vh;
   display: flex;
   flex-flow: column nowrap;
   align-items: space-between;
-  top: 60vh;
+  top: 20vh;
   justify-content: end;
 }
 
