@@ -50,9 +50,6 @@
         },
         methods: {
            ...mapMutations(["updateAllStats"])
-        },
-        async mounted() {
-            localStorage.clear()
         }
     }
 </script>

@@ -32,7 +32,7 @@ export default {
       this.setUpBoard(data.game);
     });
 
-    this.getSocket().on("REJOIN_6", (data) => {
+    this.getSocket().on("REJOIN_4", (data) => {
       this.setUpBoard(data.game);
     })
 
