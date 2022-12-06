@@ -120,8 +120,8 @@ export default {
     ]),
   },
     created() {
-    this.updateSocket(io("https://game-test-birds-eye.herokuapp.com", {}));
-    //this.updateSocket(io("http://localhost:3000", { }))
+    //this.updateSocket(io("https://game-test-birds-eye.herokuapp.com", {})?io("https://game-test-birds-eye.herokuapp.com", {}):io("http://localhost:3000", { }));
+    this.updateSocket(io("http://localhost:3000", { }))
     let background = new Audio("background.mp3");
     let flip = new Audio("flip.mp3");
     this.updateAudio({ background: background, flip: flip });
@@ -171,11 +171,6 @@ export default {
     });
 
     await this.getSocket().on("REJOIN_2", async (data) => {
-      data.game =  this.getGame()
-      await this.getSocket().emit("REJOIN_3", data);
-    });
-
-    await this.getSocket().on("REJOIN_4", async (data) => {
       this.updateGame(data.game)
       this.updatePlayer(
         data.game.players.filter(
@@ -185,8 +180,8 @@ export default {
       this.updateGameRunning(true);
       this.handleAnimateTitle();
       this.formClass = "hidden";
-      await this.getSocket().emit("REJOIN_5", data)
-    })
+      await this.getSocket().emit("REJOIN_3", data)
+    });
 
     await this.getSocket().on("joinedRoom", (data) => {
       this.updateGame(data.game);
