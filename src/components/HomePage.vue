@@ -4,14 +4,18 @@
       <img :src="title" :class="titleClass" />
       <h2 v-if="message" class="user-message">{{ message }}</h2>
       <UserMessage />
-      <div v-if="!rejoinQuery" :class="formClass">
-        <form
-          v-if="!gameId"
-          @submit="handleCreateGame"
-          class="start-form create"
-        >
+      <div  :class="formClass">
+        <form v-if="!gameId" @submit="handleCreateGame" class="start-form create">
           <input ref="createGameInput" class="input-form" />
           <button type="submit" class="button-form">Create Game</button>
+        </form>
+        <form v-if="!gameId" @submit="handleJoinGame" class="start-form join">
+          <input ref="joinGameInput" class="input-form" />
+          <button type="submit" class="button-form">Join New Game</button>
+        </form>
+        <form v-if="!gameId" @submit="handleSetRejoin" class="start-form join">
+          <input ref="rejoinGameInput" class="input-form" />
+          <button type="submit" class="button-form">Rejoin Existing Game</button>
         </form>
         <form v-if="makingName" @submit="handleAddNameToGame" class="entername">
           <div class="start-form">
@@ -19,10 +23,6 @@
             <input ref="addNameToGame" class="input-form" />
             <button type="submit" class="button-form">Enter</button>
           </div>
-        </form>
-        <form v-if="!gameId" @submit="handleJoinGame" class="start-form join">
-          <input ref="joinGameInput" class="input-form" />
-          <button type="submit" class="button-form">Join Game</button>
         </form>
         <a
           target="_blank"
@@ -55,13 +55,6 @@
     <div v-if="game">
       <GameOver v-if="game.gameOver" />
     </div>
-    <div class="rejoin-form" v-if="rejoinQuery">
-      <div class="rejoin-words">You had were in a game when you disconnected. Would you like to attempt to reconnect?</div>
-      <div class="center">
-        <button class="button-form" @click="handleLeaveGame()">Leave Game</button>
-        <button class="button-form" @click="handleRejoinGame()">Rejoin</button>
-      </div>
-    </div>
   </div>
 </template>
   
@@ -93,7 +86,7 @@ export default {
       formClass: "start-forms",
       mute:mute,
       unmute:unmute,
-      rejoinQuery: false
+      rejoin: false
     };
   },
   computed: {
@@ -120,8 +113,8 @@ export default {
     ]),
   },
     created() {
-    //this.updateSocket(io("https://game-test-birds-eye.herokuapp.com", {})?io("https://game-test-birds-eye.herokuapp.com", {}):io("http://localhost:3000", { }));
-    this.updateSocket(io("http://localhost:3000", { }))
+    this.updateSocket(io("https://game-test-birds-eye.herokuapp.com", {}));
+    //this.updateSocket(io("http://localhost:3000", { }))
     let background = new Audio("background.mp3");
     let flip = new Audio("flip.mp3");
     this.updateAudio({ background: background, flip: flip });
@@ -137,10 +130,6 @@ export default {
   },
   async mounted() {
 
-    if(parseInt(localStorage.getItem('inGame'))){
-      this.rejoinQuery = true
-    }
-
     this.selectCreateGameInput()
 
     await this.getSocket().on("gameStarted", async (data) => {
@@ -153,13 +142,10 @@ export default {
       this.updateGameRunning(true);
       this.handleAnimateTitle();
       this.formClass = "hidden";
-      localStorage.setItem('roomId', this.roomId)
-      localStorage.setItem('playerName', this.getPlayer().name)
-      localStorage.setItem('inGame', 1 )
     });
 
-    await this.getSocket().on("invalidRoom", () => {
-      this.updateMessage("Game Does Not Exist")
+    await this.getSocket().on("invalidRoom", (data) => {
+      this.updateMessage(data.invalidRoom)
     });
 
     await this.getSocket().on("playerJoined", async () => {
@@ -174,7 +160,7 @@ export default {
       this.updateGame(data.game)
       this.updatePlayer(
         data.game.players.filter(
-          (player) => player.name === this.getPlayer().name
+          (player) => player.name === data.playerName
         )[0]
       );
       this.updateGameRunning(true);
@@ -186,7 +172,7 @@ export default {
     await this.getSocket().on("joinedRoom", (data) => {
       this.updateGame(data.game);
       this.gameId = data.roomId;
-      this.makingName = true;
+      this.makingName = true; 
     });
 
     await this.getSocket().on("updateGame", (data) => {
@@ -267,16 +253,12 @@ export default {
       this.$refs.createGameInput.select();
     },
 
-    handleLeaveGame() {
-      this.rejoinQuery = false
-      localStorage.clear()
-    },
     handleRejoinGame() {
-      this.rejoinQuery = false
-      this.updatePlayer({name: localStorage.getItem('playerName')})
       const data = {
-        gameId: localStorage.getItem('roomId'),
+        gameId: this.gameId,
+        playerName: this.$refs.addNameToGame.value
       }
+      console.log(data)
       this.getSocket().emit("REJOIN_1", data);
     },
 
@@ -333,6 +315,11 @@ export default {
     },
     async handleAddNameToGame(e) {
       e.preventDefault();
+      if(this.rejoin){
+        this.handleRejoinGame()
+        return
+      }
+      this.updatePlayer({name:this.$refs.addNameToGame.value})
       this.updateName(this.$refs.addNameToGame.value);
       const data = {
         name: this.$refs.addNameToGame.value,
@@ -342,6 +329,13 @@ export default {
       await this.getSocket().emit("addNameToGame", data);
       this.$refs.addNameToGame.value = "";
       this.makingName = false;
+    },
+
+    async handleSetRejoin(e) {
+      e.preventDefault()
+      this.rejoin = true
+      this.makingName = true
+      this.gameId = this.$refs.rejoinGameInput.value;
     },
 
     handleConfirm(choice){
