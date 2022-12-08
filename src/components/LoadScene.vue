@@ -32,7 +32,7 @@ export default {
       this.setUpBoard(data.game);
     });
 
-    this.getSocket().on("REJOIN_4", (data) => {
+    this.getSocket().on("REJOIN_4", async (data) => {
       this.setUpBoard(data.game);
     })
 
@@ -123,7 +123,7 @@ export default {
     setUpBoard(game) {
       let newTarget = new Vector3(18.4, 1.1, -3.2);
       let newPosition = new Vector3(18.4, 2.2, -2.3);
-      this.moveCamera(newPosition, newTarget, game, true);
+      return this.moveCamera(newPosition, newTarget, game, true);
     },
 
     moveCamera(position, target, game, initial) {
@@ -183,7 +183,7 @@ export default {
 
       if (initial) {
         cameraMoved.onAnimationEnd = () => {
-          this.postInitialCameraMove(game);
+          return this.postInitialCameraMove(game);
         };
       }
     },
@@ -332,6 +332,15 @@ export default {
                                     0
                                   ).onAnimationEnd = () => {
                                     this.updateBoard(board);
+                                    const commodies = {...this.getGame().commodityValues}
+                                    commodies.wood -= 1
+                                    commodies.wheat -= 1
+                                    commodies.coal -= 2
+                                    commodies.iron -= 2
+                                    commodies.goods -= 3
+                                    commodies.luxury -= 3
+                                    this.handleMoveCommodiesOnRejoin(commodies)
+                                    return board
                                   };
                                 };
                               };
@@ -490,13 +499,24 @@ export default {
       }
     },
 
+    handleMoveCommodiesOnRejoin(commodies){
+      for (const key in commodies){
+        let board = this.getBoard();
+        board.commodies[key] = this.moveCommodity(
+        commodies[key],
+        board,
+        key
+        )
+        this.updateBoard(board);
+      }
+    },
     handleMoveCommodies(game) {
       for (let key in game.animation.payload) {
         let board = this.getBoard();
         board.commodies[key] = this.moveCommodity(
-          game.animation.payload[key],
-          board,
-          key
+        game.animation.payload[key],
+        board,
+        key
         );
         this.updateBoard(board);
       }
@@ -520,10 +540,10 @@ export default {
         zChange = 0.045;
         number += 1;
       } else {
-        board.commodies[key] = commodity;
-        return;
+        return commodity
       }
 
+      console.log(commodity)
       if (commodity.side === "left") {
         xChange = -0.0642;
         commodity.side = "right";
@@ -531,6 +551,7 @@ export default {
         xChange = 0.0642;
         commodity.side = "left";
       }
+
 
       let positionX = new Animation(
         "positionX",
@@ -604,6 +625,7 @@ export default {
         false
       );
 
+      console.log(board)
       animation.onAnimationEnd = () => {
         board.commodies[key] = commodity;
         this.updateBoard(board, key, number);
