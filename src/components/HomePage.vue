@@ -1,8 +1,10 @@
 <template>
   <div>
+    <div class="message-container-middle">
+        <div v-if="message" class="user-message">{{ message }}</div>
+      </div>
     <div v-if="!gameOver">
       <img :src="title" :class="titleClass" />
-      <h2 v-if="message" class="user-message">{{ message }}</h2>
       <UserMessage />
       <div  :class="formClass">
         <form v-if="!gameId" @submit="handleCreateGame" class="start-form create">
@@ -113,8 +115,8 @@ export default {
     ]),
   },
     created() {
-    this.updateSocket(io("https://game-test-birds-eye.herokuapp.com", {}));
-    //this.updateSocket(io("http://localhost:3000", { }))
+    //this.updateSocket(io("https://game-test-birds-eye.herokuapp.com", {}));
+    this.updateSocket(io("http://localhost:3000", { }))
     let background = new Audio("background.mp3");
     let flip = new Audio("flip.mp3");
     this.updateAudio({ background: background, flip: flip });
@@ -538,18 +540,29 @@ export default {
   top: -100vh;
 }
 .user-message {
-  position: absolute;
-  top: 10px;
   margin: 10px;
-  width: 30vw;
-  left: 35vw;
-  font-size: 3em;
+  font-size: 1.5em;
   font-family: main;
   font-weight: bolder;
   text-decoration: none;
   color: rgb(167, 142, 119);
   padding: 15px;
   text-shadow: rgb(0, 0, 0) 2px 2px 2px;
+  background: rgb(43, 17, 17);
+  border: 3px solid rgb(148, 98, 47);
+  border-radius: 50px;
+}
+.message-container-middle{
+  z-index: 2;
+  position:absolute;
+  width:100%;
+  left: 0;
+  right: 0;
+  top: 20px;
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: center;
+  align-items: center;
 }
 .link {
   display: flex;
@@ -603,10 +616,10 @@ canvas {
 }
 
 .start-forms {
-  font-size: 1.5em;
+  font-size: 1em;
   position: absolute;
   right: 2vw;
-  width: 40vw;
+  width: 45vw;
   display: flex;
   flex-flow: column nowrap;
   align-items: space-between;
@@ -618,29 +631,33 @@ canvas {
   position: absolute;
   display: flex;
   flex-flow: row nowrap;
-  width: 40vw;
-  right: 30vw;
+  width: 100%;
+  left:0;
   justify-content: center;
+  align-items:center;
 }
 .confirm-button{
-  font-size: 2em;
+  font-size: 1.5em;
   font-family: main;
+  margin: 20px;
   background: none;
   border: none;
   font-weight: bolder;
   text-decoration: none;
   color: rgb(167, 142, 119);
-  padding: 15px;
-  padding-left: 25px;
-  padding-right: 25px;
-  border-radius: 20px;
+  padding: 5px;
+  padding-left: 15px;
+  padding-right: 15px;
   text-shadow: rgb(0, 0, 0) 2px 2px 2px;
+  background: rgb(43, 17, 17);
+  border: 3px solid rgb(148, 98, 47);
+  border-radius: 50px;
 }
 
 .start-form {
   display: flex;
   flex-flow: row nowrap;
-  margin: 20px;
+  margin: 15px;
   justify-content: space-between;
   align-items: space-between;
   background: rgba(43, 17, 17, 0.839);
@@ -667,7 +684,7 @@ canvas {
   font-size: 1em;
   font-family: main;
   outline: none;
-  border: 3px solid rgb(148, 98, 47);
+  border: 1px solid rgb(148, 98, 47);
   border-radius: 50px;
   font-weight: bold;
   text-decoration: none;
