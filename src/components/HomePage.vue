@@ -35,10 +35,10 @@
           >How To Play</a
         >
       </div>
-      <LoadScene />
+      <LoadScene ref="canvasScene"/>
       <div class="confirm-container" v-if="confirmQuery.bool">
-            <button class="confirm-button" @click="()=>{handleConfirm(confirmQuery)}">Confirm</button>
-            <button class="confirm-button" @click="()=>{handleConfirm(false)}">Cancel</button>
+            <button class="confirm-button" @click="()=>{handleConfirm(confirmQuery, true)}">Confirm</button>
+            <button class="confirm-button" @click="()=>{handleConfirm(confirmQuery, false)}">Cancel</button>
         </div>
       <button
         v-if="
@@ -63,6 +63,10 @@
 <script>
 import io from "socket.io-client";
 import UserMessage from "./UserMessage.vue";
+import {
+  Vector3
+} from "@babylonjs/core";
+import * as BABYLON from "@babylonjs/core/Legacy/legacy";
 import UI from "./UI.vue";
 import LoadScene from "./LoadScene.vue";
 import title from "../../public/assets/RacoionTycoonTitle_preview_rev_2.png";
@@ -102,7 +106,9 @@ export default {
       "message",
       "gameOver",
       "audio",
-      "confirmQuery"
+      "confirmQuery",
+      "HL",
+      "board"
     ]),
     ...mapGetters([
       "getGame",
@@ -112,6 +118,8 @@ export default {
       "getMessage",
       "getGameOver",
       "getAudio",
+      "getHL",
+      "getBoard"
     ]),
   },
     created() {
@@ -248,7 +256,9 @@ export default {
       "updateMessage",
       "updateAudio",
       "updateGameOver",
-      "updateConfirmQuery"
+      "updateConfirmQuery",
+      "updateHL",
+      "updateBoard"
     ]),
 
     selectCreateGameInput() {
@@ -340,25 +350,40 @@ export default {
       this.gameId = this.$refs.rejoinGameInput.value;
     },
 
-    handleConfirm(choice){
-      this.updateConfirmQuery({bool:false})
-      if(!choice){return}
+    handleConfirm(choice, confirmed){
+      let newTarget = new Vector3(18.4, 1.1, -3.2);
+      let newPosition = new Vector3(18.4, 2.2, -2.3);
+      this.$refs.canvasScene.moveCamera(newPosition, newTarget, this.getGame(), false)
+      const board = this.getBoard()
       switch(choice.type){
         case "RAILROAD":
-          this.handleStartAuction(choice.payload)
+          if(confirmed) this.handleStartAuction(choice.payload)
+          board.cards.shown.railroads[choice.payload]?this.getHL().addMesh(
+            board.cards.shown.railroads[choice.payload],
+            new BABYLON.Color3(1, 1, 1)
+          ):null
           break
 
         case "TOWN":
-          this.handleBuyTown()
+          if(confirmed) this.handleBuyTown()
+          board.cards.shown.town?this.getHL().addMesh(
+            board.cards.shown.town,
+            new BABYLON.Color3(1, 1, 1)
+          ):null
           break
 
         case "BUILDING":
-          this.handleBuyBuilding(choice.payload)
+          if(confirmed) this.handleBuyBuilding(choice.payload)
+          board.cards.shown.buildings[choice.payload]?this.getHL().addMesh(
+            board.cards.shown.buildings[choice.payload],
+            new BABYLON.Color3(1, 1, 1)
+          ):null
           break
 
         default:
           break
       }
+      this.updateConfirmQuery({bool:false})
     },
 
     //railroad methods
@@ -672,7 +697,7 @@ canvas {
   border: none;
   font-weight: bolder;
   text-decoration: none;
-  color: rgb(167, 142, 119);
+  color: rgb(167, 153, 119);
   padding: 15px;
   padding-left: 25px;
   padding-right: 25px;

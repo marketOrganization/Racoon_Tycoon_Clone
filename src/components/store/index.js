@@ -15,12 +15,16 @@ export default Vuex.createStore({
       gameOver: false,
       allStats: false,
       personalStats: false,
-      audio:{}
+      audio:{},
+      HL: null
     }
   },
   mutations: {
     updateGame(state, payload){
       state.game = payload
+    },
+    updateHL(state, payload){
+      state.HL = payload
     },
     updateConfirmQuery(state, payload){
       state.confirmQuery = payload
@@ -63,6 +67,9 @@ export default Vuex.createStore({
   getters: {
     getGame: (state) => () => {
       return state.game
+    },
+    getHL: (state) =>() => {
+      return state.HL
     },
     getPlayer: (state) => () => {
       return state.player
