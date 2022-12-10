@@ -115,8 +115,8 @@ export default {
     ]),
   },
     created() {
-    //this.updateSocket(io("https://game-test-birds-eye.herokuapp.com", {}));
-    this.updateSocket(io("http://localhost:3000", { }))
+    this.updateSocket(io("https://game-test-birds-eye.herokuapp.com", {}));
+    //this.updateSocket(io("http://localhost:3000", { }))
     let background = new Audio("background.mp3");
     let flip = new Audio("flip.mp3");
     this.updateAudio({ background: background, flip: flip });

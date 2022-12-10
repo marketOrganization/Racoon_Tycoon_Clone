@@ -332,14 +332,8 @@ export default {
                                     0
                                   ).onAnimationEnd = () => {
                                     this.updateBoard(board);
-                                    const commodies = {...this.getGame().commodityValues}
-                                    commodies.wood -= 1
-                                    commodies.wheat -= 1
-                                    commodies.coal -= 2
-                                    commodies.iron -= 2
-                                    commodies.goods -= 3
-                                    commodies.luxury -= 3
-                                    this.handleMoveCommodiesOnRejoin(commodies)
+
+                                    this.handleMoveCommodiesOnRejoin(this.getCommodityPositions())
                                     return board
                                   };
                                 };
@@ -358,6 +352,17 @@ export default {
       });
     },
 
+    getCommodityPositions() {
+      const commodies = {...this.getGame().commodityValues}
+      commodies.wood -= 1
+      commodies.wheat -= 1
+      commodies.coal -= 2
+      commodies.iron -= 2
+      commodies.goods -= 3
+      commodies.luxury -= 3
+      return commodies
+    },
+    
     handleShowNewCard(index, type) {
       let newPosition;
       let board = this.getBoard();
