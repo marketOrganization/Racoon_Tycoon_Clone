@@ -16,10 +16,17 @@ export default Vuex.createStore({
       allStats: false,
       personalStats: false,
       audio:{},
-      HL: null
+      HL: null,
+      showPPCards:{
+          message: "Show Price And Production Cards",
+          bool : false
+        }
     }
   },
   mutations: {
+    updateShowPpCards(state, payload){
+      state.showPPCards = payload
+    },
     updateGame(state, payload){
       state.game = payload
     },
@@ -65,6 +72,9 @@ export default Vuex.createStore({
 
   },
   getters: {
+    getShowPPCards: (state) => () => {
+      return state.showPPCards
+    },
     getGame: (state) => () => {
       return state.game
     },

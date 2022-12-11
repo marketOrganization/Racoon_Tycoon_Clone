@@ -214,7 +214,7 @@ export default {
     }
     .card-container {
         position:absolute;
-        bottom: 20px;
+        bottom: 75px;
         right: 10px;
         display: flex;
         flex-flow:row nowrap

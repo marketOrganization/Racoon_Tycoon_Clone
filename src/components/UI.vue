@@ -2,7 +2,10 @@
     <div >
         <AuctionUI v-if="game.auction"/>
         <PlayerStats></PlayerStats>
-        <PPCard/>
+        <div class="ppcard-container">
+            <button class="pp-button" @click="handleTogglePPCards()">{{showPPCards.message}}</button>
+            <PPCard v-if="showPPCards.bool"/>
+        </div>
         <div  class="gameid">
             <div v-if="game.roomId" >Currenetly in Game:   {{game.roomId}}</div>
         </div>
@@ -34,11 +37,11 @@
             AuctionUI
         },
         computed:{
-            ...mapState(["player", "game", "FPS"]),
-            ...mapGetters(["getPlayer", "getGame", "getSocket" ])
+            ...mapState(["player", "game", "FPS", "showPPCards"]),
+            ...mapGetters(["getPlayer", "getGame", "getSocket", "getShowPPCards" ])
         },
         methods:{
-            ...mapMutations(["updateMessage", "updatePlayer"]),
+            ...mapMutations(["updateMessage", "updatePlayer", "updateShowPPCards "]),
             handleSell(e){
                 e.preventDefault()
                 let player = this.getPlayer()
@@ -68,6 +71,17 @@
                 player.selling = false
                 this.updatePlayer(player)
                 this.$refs.sellAmountInput.value = ""
+            },
+            handleTogglePPCards(){
+                const newPPCardObject = this.getShowPPCards()
+
+                if(!newPPCardObject.bool){
+                    newPPCardObject.message = "Hide Price And Production Cards"
+                }else{
+                    newPPCardObject.message = "Show Price And Production Cards"
+                }
+                newPPCardObject.bool = !newPPCardObject.bool
+                this.updateShowPPCards(newPPCardObject)
             }
         }
     }
@@ -134,5 +148,29 @@
     }
     .selling-button:hover{
         text-shadow: 4px 4px 5px black;
+    }
+    .pp-button{
+        font-size: 1.5em;
+        font-family: main;
+        margin: 20px;
+        background: none;
+        border: none;
+        font-weight: bolder;
+        text-decoration: none;
+        color: rgb(167, 142, 119);
+        padding: 5px;
+        padding-left: 15px;
+        padding-right: 15px;
+        text-shadow: rgb(0, 0, 0) 2px 2px 2px;
+        background: rgb(43, 17, 17);
+        border: 3px solid rgb(148, 98, 47);
+        border-radius: 50px;
+    }
+    .ppcard-container{
+        position: absolute;
+        bottom: 0vh;
+        right: 0vw;
+        display: flex;
+        flex-flow: row nowrap;
     }
 </style>

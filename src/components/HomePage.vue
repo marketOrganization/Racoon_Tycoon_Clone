@@ -108,7 +108,8 @@ export default {
       "audio",
       "confirmQuery",
       "HL",
-      "board"
+      "board",
+      "showPPCards"
     ]),
     ...mapGetters([
       "getGame",
@@ -119,7 +120,8 @@ export default {
       "getGameOver",
       "getAudio",
       "getHL",
-      "getBoard"
+      "getBoard",
+      "getShowPPCards"
     ]),
   },
     created() {
@@ -258,7 +260,8 @@ export default {
       "updateGameOver",
       "updateConfirmQuery",
       "updateHL",
-      "updateBoard"
+      "updateBoard",
+      "updateShowPPCards"
     ]),
 
     selectCreateGameInput() {
@@ -614,7 +617,7 @@ export default {
 .title-big {
   position: absolute;
   width: 20vw;
-  right: 40vw;
+  right: 15vw;
   min-width: 100px;
 }
 
@@ -648,7 +651,7 @@ canvas {
   display: flex;
   flex-flow: column nowrap;
   align-items: space-between;
-  top: 20vh;
+  top: 30vh;
   justify-content: end;
 }
 
@@ -758,6 +761,36 @@ canvas {
 
 .start-button:hover {
   box-shadow: 3px 3px 10px black;
+}
+
+@media (min-width: 320px) and (max-width: 700px) {
+  .start-forms {
+  font-size: 1em;
+  position: absolute;
+  width: 100%;
+  right: 0;
+  left: 0;
+  display: flex;
+  flex-flow: column nowrap;
+  align-items: space-between;
+  top: 40vh;
+  justify-content: end;
+  }
+
+  .title-big {
+  position: absolute;
+  width: 100vw;
+  right: 0vw;
+}
+
+.title-small {
+  position: absolute;
+  width: 10vw;
+  right: 0vw;
+  top:0;
+  animation: titleAnimation 0.5s;
+}
+
 }
 </style>
   
