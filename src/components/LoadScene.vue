@@ -79,7 +79,8 @@ export default {
       "gameCanStart",
       "message",
       "board",
-      "confirmQuery"
+      "confirmQuery",
+      "HL"
     ]),
     ...mapGetters([
       "getGame",
@@ -89,7 +90,8 @@ export default {
       "getBoard",
       "getFPS",
       "getAudio",
-      "getConfirmQuery"
+      "getConfirmQuery",
+      "getHL"
     ]),
   },
   data() {
@@ -117,7 +119,8 @@ export default {
       "updateGameCanStart",
       "updateMessage",
       "updateBoard",
-      "updateConfirmQuery"
+      "updateConfirmQuery",
+      "updateHL"
     ]),
 
     setUpBoard(game) {
@@ -192,28 +195,28 @@ export default {
       this.loadTexturesAsync(game).then(async (textures) => {
         let board = this.createAllCards(game, textures);
 
-        board.cards.shown.railroads[0]?this.hl.addMesh(
+        board.cards.shown.railroads[0]?this.getHL().addMesh(
           board.cards.shown.railroads[0],
-          new BABYLON.Color3(1, 0.9, 0.8)
+          new BABYLON.Color3(1, 1, 1)
         ):null
-        board.cards.shown.railroads[1]?this.hl.addMesh(
+        board.cards.shown.railroads[1]?this.getHL().addMesh(
           board.cards.shown.railroads[1],
           new BABYLON.Color3(1, 1, 1)
         ):null
-        board.cards.shown.town? this.hl.addMesh(board.cards.shown.town, new BABYLON.Color3(1, 1, 1)):null
-        board.cards.shown.buildings[0]?this.hl.addMesh(
+        board.cards.shown.town? this.getHL().addMesh(board.cards.shown.town, new BABYLON.Color3(1, 1, 1)):null
+        board.cards.shown.buildings[0]?this.getHL().addMesh(
           board.cards.shown.buildings[0],
           new BABYLON.Color3(1, 1, 1)
         ):null
-        board.cards.shown.buildings[1]?this.hl.addMesh(
+        board.cards.shown.buildings[1]?this.getHL().addMesh(
           board.cards.shown.buildings[1],
           new BABYLON.Color3(1, 1, 1)
         ):null
-        board.cards.shown.buildings[2]?this.hl.addMesh(
+        board.cards.shown.buildings[2]?this.getHL().addMesh(
           board.cards.shown.buildings[2],
           new BABYLON.Color3(1, 1, 1)
         ):null
-        board.cards.shown.buildings[3]?this.hl.addMesh(
+        board.cards.shown.buildings[3]?this.getHL().addMesh(
           board.cards.shown.buildings[3],
           new BABYLON.Color3(1, 1, 1)
         ):null
@@ -332,14 +335,9 @@ export default {
                                     0
                                   ).onAnimationEnd = () => {
                                     this.updateBoard(board);
-                                    const commodies = {...this.getGame().commodityValues}
-                                    commodies.wood -= 1
-                                    commodies.wheat -= 1
-                                    commodies.coal -= 2
-                                    commodies.iron -= 2
-                                    commodies.goods -= 3
-                                    commodies.luxury -= 3
-                                    this.handleMoveCommodiesOnRejoin(commodies)
+                                    
+                                    //sets the position of the commodies if rejoining a game
+                                    this.handleMoveCommodiesOnRejoin(this.getCommodityPositions())
                                     return board
                                   };
                                 };
@@ -356,6 +354,17 @@ export default {
           };
         };
       });
+    },
+
+    getCommodityPositions() {
+      const commodies = {...this.getGame().commodityValues}
+      commodies.wood -= 1
+      commodies.wheat -= 1
+      commodies.coal -= 2
+      commodies.iron -= 2
+      commodies.goods -= 3
+      commodies.luxury -= 3
+      return commodies
     },
 
     handleShowNewCard(index, type) {
@@ -398,7 +407,7 @@ export default {
                     }
                   )
                 );
-                this.hl.addMesh(
+                this.getHL().addMesh(
                   board.cards.shown.railroads[index],
                   new BABYLON.Color3(1, 1, 1)
                 );
@@ -441,7 +450,7 @@ export default {
                     }
                   )
                 );
-                this.hl.addMesh(
+                this.getHL().addMesh(
                   board.cards.shown.town,
                   new BABYLON.Color3(1, 1, 1)
                 );
@@ -485,7 +494,7 @@ export default {
                     }
                   )
                 );
-                this.hl.addMesh(
+                this.getHL().addMesh(
                   board.cards.shown.buildings[index],
                   new BABYLON.Color3(1, 1, 1)
                 );
@@ -1052,7 +1061,7 @@ export default {
       );
       this.scene.clearColor = new Color3(1, 1, 1);
       boradMaterial.diffuseTexture = texture;
-      this.hl = new BABYLON.HighlightLayer("hl1", this.scene);
+      this.updateHL(new BABYLON.HighlightLayer("hl1", this.scene))
 
       let boardFaceUV = new Array(6);
       for (var i = 0; i < 6; i++) {
@@ -1083,21 +1092,23 @@ export default {
       table.meshes[0].scaling.setAll(3);
 
       let cameraPosition = new Vector3(17.7, 3, -2);
+      let cameraTarget = new Vector3(17.7, 0.8, -3.6);
+
       this.camera = new BABYLON.UniversalCamera(
         "camera",
         cameraPosition,
         this.scene,
         true
-      );
-      this.camera.target = new Vector3(17.7, 0.8, -3.6);
+        );
+      this.camera.target = cameraTarget
       this.camera.fov = 0.9;
 
       this.light = new HemisphericLight(
         "light1",
-        new Vector3(18, 100, 50),
+        new Vector3(18, 100, 100),
         this.scene
       );
-      this.light.position = new Vector3(10, 10, 10);
+      this.light.position = new Vector3(0, 15, 15);
       this.light.intensity = 1.4;
       this.light.diffuse = new Color3(255 / 255, 230 / 255, 190 / 255);
 
@@ -1386,11 +1397,47 @@ export default {
 
     //confirm click functions
     handleConfirmQuery(type, payload){
+      console.log(type, payload)
       this.updateConfirmQuery({
         bool:true,
         payload: payload,
         type: type
       })
+
+      let railRoadPosition = new Vector3(18.7, 1.99, -3.3);
+      let railRoadTarget = new Vector3(18.7, 0.8, -3.43);
+
+      let townPosition = new Vector3(17.9, 1.99, -3.3);
+      let townTarget = new Vector3(17.9, 0.8, -3.43);
+
+      let buildingPosition = new Vector3(18.2, 1.97, -2.8);
+      let buildingTarget = new Vector3(18.2, 0.8,-3.15);
+
+      const board = this.getBoard()
+
+      switch(type){
+        case "BUILDING":
+          this.moveCamera(buildingPosition, buildingTarget, this.getGame(), false )
+          board.cards.shown.buildings[payload]?this.getHL().addMesh(
+          board.cards.shown.buildings[payload],
+          new BABYLON.Color3(.9, 0.6, 0.03)
+        ):null
+          break
+
+        case "TOWN":
+          this.moveCamera(townPosition, townTarget, this.getGame(), false )
+          board.cards.shown.town? this.getHL().addMesh(board.cards.shown.town, new BABYLON.Color3(.9, 0.6, 0.03)):null
+          break 
+
+        case "RAILROAD":
+          this.moveCamera(railRoadPosition, railRoadTarget, this.getGame(), false )
+          board.cards.shown.railroads[payload]?this.getHL().addMesh(
+          board.cards.shown.railroads[payload],
+          new BABYLON.Color3(.9, 0.6, 0.03)
+        ):null
+          break 
+      }
+
     },
 
     //selling
