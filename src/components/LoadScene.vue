@@ -105,7 +105,7 @@ export default {
       commodies: [],
       hl: null,
       flip: null,
-      resizeQueue: false
+      resizeQueue: false,
     };
   },
   methods: {
@@ -1022,6 +1022,7 @@ export default {
           this.scene
         );
 
+        console.log(textures)
         this.whenAllReady(textures, () => resolve(textures));
       });
     },
@@ -1386,7 +1387,6 @@ export default {
       );
 
       this.updateBoard(boardInitial);
-
       this.engine.runRenderLoop(() => {
         this.scene.render();
           setTimeout(()=>{
@@ -1397,7 +1397,37 @@ export default {
 
     //confirm click functions
     handleConfirmQuery(type, payload){
-      console.log(type, payload)
+      const confirmQuery = this.getConfirmQuery()
+      const board = this.getBoard()
+      if(confirmQuery.bool){
+        const type = confirmQuery.type
+        switch(type){
+        case "RAILROAD":
+          board.cards.shown.railroads[confirmQuery.payload]?this.getHL().addMesh(
+            board.cards.shown.railroads[confirmQuery.payload],
+            new BABYLON.Color3(1, 1, 1)
+          ):null
+          break
+
+        case "TOWN":
+          board.cards.shown.town?this.getHL().addMesh(
+            board.cards.shown.town,
+            new BABYLON.Color3(1, 1, 1)
+          ):null
+          break
+
+        case "BUILDING":
+          board.cards.shown.buildings[confirmQuery.payload]?this.getHL().addMesh(
+            board.cards.shown.buildings[confirmQuery.payload],
+            new BABYLON.Color3(1, 1, 1)
+          ):null
+          break
+
+        default:
+          break
+      }
+      }
+
       this.updateConfirmQuery({
         bool:true,
         payload: payload,
@@ -1412,8 +1442,6 @@ export default {
 
       let buildingPosition = new Vector3(18.2, 1.97, -2.8);
       let buildingTarget = new Vector3(18.2, 0.8,-3.15);
-
-      const board = this.getBoard()
 
       switch(type){
         case "BUILDING":
