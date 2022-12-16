@@ -2,8 +2,10 @@
   <div>
     <div class="message-container-middle">
         <div v-if="message" class="user-message">{{ message }}</div>
-      </div>
+    </div>
+
     <div v-if="!gameOver">
+
       <img :src="title" :class="titleClass" />
       <UserMessage />
       <div  :class="formClass">
@@ -11,14 +13,17 @@
           <input ref="createGameInput" class="input-form" />
           <button type="submit" class="button-form">Create Game</button>
         </form>
+
         <form v-if="!gameId" @submit="handleJoinGame" class="start-form join">
           <input ref="joinGameInput" class="input-form" />
           <button type="submit" class="button-form">Join New Game</button>
         </form>
+
         <form v-if="!gameId" @submit="handleSetRejoin" class="start-form join">
           <input ref="rejoinGameInput" class="input-form" />
           <button type="submit" class="button-form">Rejoin Existing Game</button>
         </form>
+
         <form v-if="makingName" @submit="handleAddNameToGame" class="entername">
           <div class="start-form">
             <div class="button-form">Please Enter Your Name</div>
@@ -26,6 +31,7 @@
             <button type="submit" class="button-form">Enter</button>
           </div>
         </form>
+
         <a
           target="_blank"
           rel="noopener noreferrer"
@@ -35,11 +41,14 @@
           >How To Play</a
         >
       </div>
+
       <LoadScene ref="canvasScene"/>
+
       <div class="confirm-container" v-if="confirmQuery.bool">
-            <button class="confirm-button" @click="()=>{handleConfirm(confirmQuery, true)}">Confirm</button>
-            <button class="confirm-button" @click="()=>{handleConfirm(confirmQuery, false)}">Cancel</button>
-        </div>
+          <button class="confirm-button" @click="()=>{handleConfirm(confirmQuery, true)}">Confirm</button>
+          <button class="confirm-button" @click="()=>{handleConfirm(confirmQuery, false)}">Cancel</button>
+      </div>
+
       <button
         v-if="
           !gameRunning && game
@@ -49,6 +58,7 @@
         @click="handleStartGame()"
         class="start-button"
       >
+      
         START GAME
       </button>
       <UI v-if="gameRunning"></UI>
