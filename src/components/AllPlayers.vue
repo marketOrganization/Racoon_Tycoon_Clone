@@ -1,9 +1,11 @@
 <template>
     <div class="players-container">
         <div  v-for="player in game.players" :key="player.name" class="stats-container-all">
+            
             <div class="name-money">
                 <div class="name margin">{{player.name}}</div>
             </div>
+
             <div class="cards-container">
                 <div class="module commodies">
                     <div  class="tabname">Commodies:</div>
@@ -11,24 +13,28 @@
                         <img class="commodity" v-for="(commodity,commodityIndex) in player.commodies" :key="commodityIndex" :src="require(`../../public/assets/commodies/${commodity.imageLink}`)"/>
                     </div>
                 </div>
+
                 <div class="module railroads">
                     <div  class="tabname">Rail Roads: </div>
                     <div  class="cardholder">
                         <img class="card" v-for="railroad in player.railroads" :src="railroad.imageLink" :key="railroad.name"/>
                     </div>
                 </div>
+                
                 <div class="module buildings" > 
                     <div class="tabname">Buildings: </div>
                     <div class="cardholder">
                         <img class="building" v-for="(building, buildingIndex) in player.buildings" :src="building.imageLink" :key="building.name" @click="handleUpgrade(building, buildingIndex)"/>
                     </div>
                 </div>
+                
                 <div class="module towns" >
                     <div  class="tabname" >Towns: </div>
                     <div class="cardholder">
                         <img class="card" v-for="town in player.towns" :src="town.imageLink" :key="town.imageLink"/>
                     </div>
                 </div>
+
             </div>
         <button class="show-button" @click="updateAllStats(false)">Hide All Cards</button>
         </div>
