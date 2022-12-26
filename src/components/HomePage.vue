@@ -42,6 +42,7 @@
         >
       </div>
 
+      //MAIN SCENE LOAD!!!!!!!!!!!!!!!
       <LoadScene ref="canvasScene"/>
 
       <div class="confirm-container" v-if="confirmQuery.bool">
